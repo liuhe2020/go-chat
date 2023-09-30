@@ -1,1 +1,5 @@
-runtime: go121
+runtime: go
+env: flex
+
+runtime_config:
+  operating_system: 'ubuntu22'
