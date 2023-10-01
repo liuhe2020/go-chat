@@ -21,6 +21,12 @@ func NewServer() *Server {
 func (s *Server) handleWS(ws *websocket.Conn){
 	fmt.Println("new connection:", ws.RemoteAddr())
 
+	connectionMessage := "⚡Connected to Go-Chat server"
+	if err := websocket.Message.Send(ws, connectionMessage); err != nil {
+		fmt.Println("error sending welcome message:", err)
+		return
+	}
+
 	s.conns[ws] = true
 
 	s.readLoop(ws)
