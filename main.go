@@ -60,6 +60,7 @@ func (s *Server) broadcast(b []byte) {
 
 func main() {
 	server := NewServer()
+	fmt.Println("Websocket server is running on :1337")
 	http.Handle("/ws", websocket.Handler(server.handleWS))
 	http.ListenAndServe(":1337", nil)
 }
