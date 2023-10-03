@@ -1,15 +1,22 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"golang.org/x/net/websocket"
 )
 
 type Server struct {
 	conns map[*websocket.Conn]bool
+}
+
+type Message struct {
+	Username string `json:"username"`
+	Message  string `json:"message"`
 }
 
 func NewServer() *Server {
@@ -32,21 +39,41 @@ func (s *Server) handleWS(ws *websocket.Conn){
 	s.readLoop(ws)
 }
 
-func (s *Server) readLoop(ws *websocket.Conn){
-	buf := make([]byte, 1024)
+func (s *Server) readLoop(ws *websocket.Conn) {
 	for {
-		n, err := ws.Read(buf)
+		var msg Message
+		err := websocket.JSON.Receive(ws, &msg)
 		if err != nil {
 			if err == io.EOF {
 				break
 			}
-			fmt.Println("read error:", err)
+			fmt.Println("Read error:", err)
 			continue
 		}
-		msg := buf[:n]
-		s.broadcast(msg)
+
+		fmt.Printf("Received message from %s: %s\n", msg.Username, msg.Message)
+
+		// Marshal the message into JSON bytes
+		jsonData, err := json.Marshal(msg)
+		if err != nil {
+			fmt.Println("Error marshalling message:", err)
+			continue
+		}
+
+		// Write the JSON data to a file
+	err = os.WriteFile("data.json", jsonData, 0644)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
+	}
+
+	fmt.Println("Data written to data.json")
+
+		// Broadcast the JSON data
+		s.broadcast(jsonData)
 	}
 }
+
 
 func (s *Server) broadcast(b []byte) {
 	for ws := range s.conns {
