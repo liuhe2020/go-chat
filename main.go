@@ -1,11 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"golang.org/x/net/websocket"
 )
@@ -15,8 +19,9 @@ type Server struct {
 }
 
 type Message struct {
-	Username string `json:"username"`
-	Message  string `json:"message"`
+	Name      string  `json:"name"`
+	Message   string  `json:"message"`
+	Timestamp string  `json:"timestamp"`
 }
 
 func NewServer() *Server {
@@ -25,12 +30,12 @@ func NewServer() *Server {
 	}
 }
 
-func (s *Server) handleWS(ws *websocket.Conn){
-	fmt.Println("new connection:", ws.RemoteAddr())
+func (s *Server) handleWS(ws *websocket.Conn) {
+	fmt.Println("New connection:", ws.RemoteAddr())
 
-	connectionMessage := "⚡Connected to Go-Chat server"
+	connectionMessage := "⚡ Connected to Go-Chat server"
 	if err := websocket.Message.Send(ws, connectionMessage); err != nil {
-		fmt.Println("error sending welcome message:", err)
+		fmt.Println("Error sending welcome message:", err)
 		return
 	}
 
@@ -40,6 +45,13 @@ func (s *Server) handleWS(ws *websocket.Conn){
 }
 
 func (s *Server) readLoop(ws *websocket.Conn) {
+	// Load existing data from data.json, if any
+	// existingData, err := loadData()
+	// if err != nil {
+	// 	fmt.Println("Error loading existing data:", err)
+	// 	return
+	// }
+
 	for {
 		var msg Message
 		err := websocket.JSON.Receive(ws, &msg)
@@ -51,27 +63,67 @@ func (s *Server) readLoop(ws *websocket.Conn) {
 			continue
 		}
 
-		fmt.Printf("Received message from %s: %s\n", msg.Username, msg.Message)
+		fmt.Printf("Received message from %s: %s\n", msg.Name, msg.Message)
 
-		// Marshal the message into JSON bytes
-		jsonData, err := json.Marshal(msg)
+		// Get the current timestamp
+		msg.Timestamp = time.Now().Format(time.RFC3339)
+
+		// Append the new message to existing data
+		// existingData = append(existingData, msg)
+
+		// Write the updated data to data.json
+		// err = saveData(existingData)
+		// if err != nil {
+		// 	fmt.Println("Error saving data:", err)
+		// 	return
+		// }
+
+		fmt.Println("Message saved to data.json")
+
+		// Render the message template
+		renderedMessage, err := renderMessageTemplate(&msg)
 		if err != nil {
-			fmt.Println("Error marshalling message:", err)
+			fmt.Println("Error rendering message template:", err)
 			continue
 		}
 
-		// Write the JSON data to a file
-	err = os.WriteFile("data.json", jsonData, 0644)
+		// Broadcast the HTML content
+		s.broadcast([]byte(renderedMessage))
+	}
+}
+
+func loadData() ([]Message, error) {
+	var data []Message
+
+	// Read data from data.json
+	file, err := os.Open("data.json")
 	if err != nil {
-		fmt.Println("Error writing to file:", err)
-		return
+		return data, err
+	}
+	defer file.Close()
+
+	err = json.NewDecoder(file).Decode(&data)
+	if err != nil {
+		return data, err
 	}
 
-	fmt.Println("Data written to data.json")
+	return data, nil
+}
 
-		// Broadcast the JSON data
-		s.broadcast(jsonData)
+func saveData(data []Message) error {
+	// Write data to data.json
+	file, err := os.Create("data.json")
+	if err != nil {
+		return err
 	}
+	defer file.Close()
+
+	err = json.NewEncoder(file).Encode(data)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 
@@ -79,15 +131,45 @@ func (s *Server) broadcast(b []byte) {
 	for ws := range s.conns {
 		go func(ws *websocket.Conn) {
 			if _, err := ws.Write(b); err != nil {
-				fmt.Println("write error:", err)
+				fmt.Println("Write error:", err)
 			}
 		}(ws)
 	}
 }
 
+func renderMessageTemplate(msg *Message) (string, error) {
+	tmpl := `
+		<p>{{.Name}}</p>
+		<p>{{.Message}}</p>
+		<p>{{.Timestamp}}</p>`
+
+	messageTemplate, err := template.New("messageTemplate").Parse(tmpl)
+	if err != nil {
+		return "", err
+	}
+
+	var renderedMessage bytes.Buffer
+	err = messageTemplate.Execute(&renderedMessage, msg)
+	if err != nil {
+		return "", err
+	}
+
+	return renderedMessage.String(), nil
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, "Yo Momma")
+}
+
 func main() {
 	server := NewServer()
-	fmt.Println("Websocket server is running on :1337")
-	http.Handle("/ws", websocket.Handler(server.handleWS))
-	http.ListenAndServe(":1337", nil)
+	mux := http.NewServeMux()
+	mux.Handle("/ws", websocket.Handler(server.handleWS))
+	mux.HandleFunc("/", handler)
+
+	fmt.Println("Server is running on :8000")
+	err := http.ListenAndServe(":8000", mux)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
