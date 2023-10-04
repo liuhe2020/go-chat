@@ -2,13 +2,14 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
-	"os"
+
+	// "os"
 	"time"
 
 	"golang.org/x/net/websocket"
@@ -78,7 +79,7 @@ func (s *Server) readLoop(ws *websocket.Conn) {
 		// 	return
 		// }
 
-		fmt.Println("Message saved to data.json")
+		// fmt.Println("Message saved to data.json")
 
 		// Render the message template
 		renderedMessage, err := renderMessageTemplate(&msg)
@@ -92,39 +93,39 @@ func (s *Server) readLoop(ws *websocket.Conn) {
 	}
 }
 
-func loadData() ([]Message, error) {
-	var data []Message
+// func loadData() ([]Message, error) {
+// 	var data []Message
 
-	// Read data from data.json
-	file, err := os.Open("data.json")
-	if err != nil {
-		return data, err
-	}
-	defer file.Close()
+// 	// Read data from data.json
+// 	file, err := os.Open("data.json")
+// 	if err != nil {
+// 		return data, err
+// 	}
+// 	defer file.Close()
 
-	err = json.NewDecoder(file).Decode(&data)
-	if err != nil {
-		return data, err
-	}
+// 	err = json.NewDecoder(file).Decode(&data)
+// 	if err != nil {
+// 		return data, err
+// 	}
 
-	return data, nil
-}
+// 	return data, nil
+// }
 
-func saveData(data []Message) error {
-	// Write data to data.json
-	file, err := os.Create("data.json")
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+// func saveData(data []Message) error {
+// 	// Write data to data.json
+// 	file, err := os.Create("data.json")
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer file.Close()
 
-	err = json.NewEncoder(file).Encode(data)
-	if err != nil {
-		return err
-	}
+// 	err = json.NewEncoder(file).Encode(data)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 
 func (s *Server) broadcast(b []byte) {
