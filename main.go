@@ -1,176 +1,74 @@
 package main
 
 import (
-	"bytes"
-	// "encoding/json"
 	"fmt"
-	"html/template"
-	"io"
 	"log"
 	"net/http"
 
-	// "os"
-	"time"
-
-	"golang.org/x/net/websocket"
+	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
-type Server struct {
-	conns map[*websocket.Conn]bool
-}
-
 type Message struct {
-	Name      string  `json:"name"`
+	Name string `json:"name"`
 	Message   string  `json:"message"`
 	Timestamp string  `json:"timestamp"`
 }
 
-func NewServer() *Server {
-	return &Server{
-		conns: make(map[*websocket.Conn]bool),
+var (
+	wsUpgrader = websocket.Upgrader {
+		ReadBufferSize: 1024,
+		WriteBufferSize: 1024,
 	}
-}
 
-func (s *Server) handleWS(ws *websocket.Conn) {
-	fmt.Println("New connection:", ws.RemoteAddr())
+	wsConn *websocket.Conn
+)
 
-	connectionMessage := "⚡ Connected to Go-Chat server"
-	if err := websocket.Message.Send(ws, connectionMessage); err != nil {
-		fmt.Println("Error sending welcome message:", err)
+func WsEndpoint(w http.ResponseWriter, r *http.Request) {
+
+	wsUpgrader.CheckOrigin = func(r *http.Request) bool {
+		// check the http.Request
+		// make sure it's OK to access
+		return true
+	}
+	var err error
+	wsConn, err = wsUpgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Printf("could not upgrade: %s\n", err.Error())
 		return
 	}
 
-	s.conns[ws] = true
+	defer wsConn.Close()
 
-	s.readLoop(ws)
-}
-
-func (s *Server) readLoop(ws *websocket.Conn) {
-	// Load existing data from data.json, if any
-	// existingData, err := loadData()
-	// if err != nil {
-	// 	fmt.Println("Error loading existing data:", err)
-	// 	return
-	// }
-
+	// event loop
 	for {
 		var msg Message
-		err := websocket.JSON.Receive(ws, &msg)
+
+		err := wsConn.ReadJSON(&msg)
 		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			fmt.Println("Read error:", err)
-			continue
+			fmt.Printf("error reading JSON: %s\n", err.Error())
+			break
 		}
 
-		fmt.Printf("Received message from %s: %s\n", msg.Name, msg.Message)
-
-		// Get the current timestamp
-		msg.Timestamp = time.Now().Format(time.RFC3339)
-
-		// Append the new message to existing data
-		// existingData = append(existingData, msg)
-
-		// Write the updated data to data.json
-		// err = saveData(existingData)
-		// if err != nil {
-		// 	fmt.Println("Error saving data:", err)
-		// 	return
-		// }
-
-		// fmt.Println("Message saved to data.json")
-
-		// Render the message template
-		renderedMessage, err := renderMessageTemplate(&msg)
-		if err != nil {
-			fmt.Println("Error rendering message template:", err)
-			continue
-		}
-
-		// Broadcast the HTML content
-		s.broadcast([]byte(renderedMessage))
+		fmt.Printf("Message Received: %s\n", msg.Message)
+		SendMessage("Hello, Client!")
 	}
 }
 
-// func loadData() ([]Message, error) {
-// 	var data []Message
-
-// 	// Read data from data.json
-// 	file, err := os.Open("data.json")
-// 	if err != nil {
-// 		return data, err
-// 	}
-// 	defer file.Close()
-
-// 	err = json.NewDecoder(file).Decode(&data)
-// 	if err != nil {
-// 		return data, err
-// 	}
-
-// 	return data, nil
-// }
-
-// func saveData(data []Message) error {
-// 	// Write data to data.json
-// 	file, err := os.Create("data.json")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer file.Close()
-
-// 	err = json.NewEncoder(file).Encode(data)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
-
-func (s *Server) broadcast(b []byte) {
-	for ws := range s.conns {
-		go func(ws *websocket.Conn) {
-			if _, err := ws.Write(b); err != nil {
-				fmt.Println("Write error:", err)
-			}
-		}(ws)
-	}
-}
-
-func renderMessageTemplate(msg *Message) (string, error) {
-	tmpl := `
-		<p>{{.Name}}</p>
-		<p>{{.Message}}</p>
-		<p>{{.Timestamp}}</p>`
-
-	messageTemplate, err := template.New("messageTemplate").Parse(tmpl)
+func SendMessage(msg string) {
+	err := wsConn.WriteMessage(websocket.TextMessage, []byte(msg))
 	if err != nil {
-		return "", err
+		fmt.Printf("error sending message: %s\n", err.Error())
 	}
-
-	var renderedMessage bytes.Buffer
-	err = messageTemplate.Execute(&renderedMessage, msg)
-	if err != nil {
-		return "", err
-	}
-
-	return renderedMessage.String(), nil
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "Yo Momma")
-}
 
 func main() {
-	server := NewServer()
-	mux := http.NewServeMux()
-	mux.Handle("/ws", websocket.Handler(server.handleWS))
-	mux.HandleFunc("/", handler)
 
-	fmt.Println("Server is running on :8000")
-	err := http.ListenAndServe(":8000", mux)
-	if err != nil {
-		log.Fatal(err)
-	}
+	router := mux.NewRouter()
+
+	router.HandleFunc("/ws", WsEndpoint)
+
+	log.Fatal(http.ListenAndServe(":8000", router))
+
 }
