@@ -13,7 +13,7 @@
   </head>
   <body>
     <div hx-ext="ws" ws-connect="ws://localhost:8000/ws">
-      <div id="chat_room" hx-swap-oob="morphdom">
+      <div>
         {{ range .Messages }} {{ block "message-element" .}}
         <div>
           <p>{{ .Name}}</p>
@@ -22,6 +22,7 @@
         </div>
         {{ end }} {{ end }}
       </div>
+      <div id="chat_room" hx-swap-oob="beforeend"></div>
       <form id="form" ws-send>
         <input name="name" />
         <input name="message" />

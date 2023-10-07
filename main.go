@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -68,20 +69,18 @@ func WsEndpoint(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		// Get the current timestamp
 		timestamp := time.Now().Format("2/1/06 15:04")
 
-		// Construct the message with the current timestamp
-		data := Message{
-			Name:      msg.Name,
-			Message:   msg.Message,
-			Timestamp: timestamp,
+		// Construct the HTML message using the data from the Message object
+		htmlString := fmt.Sprintf(`<div id="chat_room" hx-swap-oob="beforeend"><p>%s - %s -%s<p></div>`, msg.Name, msg.Message, timestamp)
+		htmlBytes := []byte(htmlString)
+
+		// Send HTML content to the client over the WebSocket
+		err = wsConn.WriteMessage(websocket.TextMessage, htmlBytes)
+		if err != nil {
+			log.Printf("error writing to WebSocket: %s\n", err.Error())
+			break
 		}
-
-		// Execute the template and store the rendered HTML in a buffer
-		tmpl := template.Must(template.ParseFiles("index.html"))
-		tmpl.ExecuteTemplate(w, "message-element", data)
-
 	}
 }
 
