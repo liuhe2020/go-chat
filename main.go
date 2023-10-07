@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -13,8 +11,8 @@ import (
 )
 
 type Message struct {
-	Name    string `json:"name"`
-	Message string `json:"message"`
+	Name      string `json:"name"`
+	Message   string `json:"message"`
 	Timestamp string `json:"timestamp"`
 }
 
@@ -27,68 +25,70 @@ var (
 	wsConn *websocket.Conn
 )
 
+func Handler(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("index.html"))
+
+	messages := map[string][]Message{
+		"Messages": {
+			{Name: "The Godfather", Message: "Francis Ford Coppola", Timestamp: "10/10/10"},
+			{Name: "Blade Runner", Message: "Ridley Scott", Timestamp: "10/10/10"},
+			{Name: "The Thing", Message: "John Carpenter", Timestamp: "10/10/10"},
+		},
+	}
+
+	tmpl.Execute(w, messages)
+
+}
+
 func WsEndpoint(w http.ResponseWriter, r *http.Request) {
 	wsUpgrader.CheckOrigin = func(r *http.Request) bool {
 		return true
 	}
-	var err error
-	wsConn, err = wsUpgrader.Upgrade(w, r, nil)
+
+	// Upgrade the HTTP connection to a WebSocket connection
+	wsConn, err := wsUpgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Printf("could not upgrade: %s\n", err.Error())
+		log.Printf("could not upgrade: %s\n", err.Error())
 		return
 	}
-
 	defer wsConn.Close()
 
-	// event loop
+	// Event loop for reading messages from the WebSocket
 	for {
 		var msg Message
 
+		// Read a message from the WebSocket
 		err := wsConn.ReadJSON(&msg)
 		if err != nil {
-			fmt.Printf("error reading JSON: %s\n", err.Error())
+			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+				log.Println("WebSocket connection closed by client")
+			} else {
+				log.Printf("error reading JSON: %s\n", err.Error())
+			}
 			break
 		}
 
-		htmlContent, err := SendMessage(msg.Name, msg.Message)
-		if err != nil {
-			fmt.Printf("error generating HTML: %s\n", err.Error())
-			break
+		// Get the current timestamp
+		timestamp := time.Now().Format("2/1/06 15:04")
+
+		// Construct the message with the current timestamp
+		data := Message{
+			Name:      msg.Name,
+			Message:   msg.Message,
+			Timestamp: timestamp,
 		}
 
-		err = wsConn.WriteMessage(websocket.TextMessage, []byte(htmlContent))
-		if err != nil {
-			fmt.Printf("error sending message: %s\n", err.Error())
-			break
-		}
+		// Execute the template and store the rendered HTML in a buffer
+		tmpl := template.Must(template.ParseFiles("index.html"))
+		tmpl.ExecuteTemplate(w, "message-element", data)
+
 	}
-}
-
-func SendMessage(name, message string) (string, error) {
-	tmpl, err := template.ParseFiles("message.tmpl")
-	if err != nil {
-		return "", err
-	}
-
-	// Generate the timestamp in the desired format "d/m/yy hh:mm"
-	timestamp := time.Now().Format("2/1/06 15:04")
-
-	data := Message{
-		Name:      name,
-		Message:   message,
-		Timestamp: timestamp,
-	}
-
-	var renderedHTML bytes.Buffer
-	if err := tmpl.Execute(&renderedHTML, data); err != nil {
-		return "", err
-	}
-
-	return renderedHTML.String(), nil
 }
 
 func main() {
 	router := mux.NewRouter()
+	router.HandleFunc("/", Handler)
 	router.HandleFunc("/ws", WsEndpoint)
+
 	log.Fatal(http.ListenAndServe(":8000", router))
 }

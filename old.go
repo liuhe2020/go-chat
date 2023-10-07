@@ -20,9 +20,9 @@ type Server struct {
 }
 
 type Message struct {
-	Name      string  `json:"name"`
-	Message   string  `json:"message"`
-	Timestamp string  `json:"timestamp"`
+	Name      string `json:"name"`
+	Message   string `json:"message"`
+	Timestamp string `json:"timestamp"`
 }
 
 func NewServer() *Server {
@@ -126,7 +126,6 @@ func (s *Server) readLoop(ws *websocket.Conn) {
 
 // 	return nil
 // }
-
 
 func (s *Server) broadcast(b []byte) {
 	for ws := range s.conns {
