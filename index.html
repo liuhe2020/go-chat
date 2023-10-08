@@ -15,11 +15,7 @@
     <div hx-ext="ws" ws-connect="ws://localhost:8000/ws">
       <div>
         {{ range .Messages }} {{ block "message-element" .}}
-        <div>
-          <p>{{ .Name}}</p>
-          <p>{{ .Message}}</p>
-          <p>{{ .Timestamp}}</p>
-        </div>
+        <p>{{ .Name}} - {{ .Message}} - {{ .Timestamp}}</p>
         {{ end }} {{ end }}
       </div>
       <div id="chat_room" hx-swap-oob="beforeend"></div>

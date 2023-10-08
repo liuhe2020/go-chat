@@ -1,0 +1,24 @@
+{
+  "messages": [
+    {
+      "name": "John",
+      "message": "Do you know how to use HTMX?",
+      "timestamp": "2023-10-08T13:54:25Z"
+    },
+    {
+      "name": "Dave",
+      "message": "No idea, Dave, what is it?",
+      "timestamp": "2023-10-08T14:03:03Z"
+    },
+    {
+      "name": "John",
+      "message": "Hell would I know, do I look like a developer to you?",
+      "timestamp": "2023-10-08T14:03:27Z"
+    },
+    {
+      "name": "Dave",
+      "message": "Alright, there is no need to raise your tone. You asked the question.",
+      "timestamp": "2023-10-08T14:04:07Z"
+    }
+  ]
+}
