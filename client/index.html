@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="/client/public/favicon.ico" />
+    <title>Go Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      src="https://unpkg.com/htmx.org@1.9.6"
+      integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
+  </head>
+  <body>
+    <!-- <div hx-ext="ws" ws-connect="ws://localhost:8080/room">
+      <div id="chat_room" hx-swap-oob="beforeend"></div>
+      <form id="form" ws-send>
+        <input name="name" />
+        <input name="message" />
+        <button type="submit">Send</button>
+      </form>
+    </div> -->
+    <!-- <script>
+      htmx.logger = function (elt, event, data) {
+        if (console) {
+          console.log(event, elt, data);
+        }
+      };
+    </script> -->
+    <!-- component -->
+    <main hx-ext="ws" ws-connect="ws://localhost:8080/room">
+      <form class="p-2 flex flex-col gap-y-4 divide-y-2 divide-gray-200 h-screen sm:p-4" id="form" ws-send>
+        <div class="flex justify-end items-center text-gray-900">
+          <!-- <div class="relative flex items-center space-x-4">
+          <div class="flex flex-col leading-tight">
+            <div class="text-2xl mt-1 flex items-center">
+              <span class="text-gray-700 mr-3">Anderson Vanhron</span>
+            </div>
+          </div>
+        </div> -->
+          <div class="flex items-center gap-x-4">
+            <label for="name" class="whitespace-nowrap">Your Name</label>
+            <input name="name" type="text" class="focus:outline-none px-4 placeholder-gray-600 bg-[#f0f0f1] rounded-md py-2" />
+          </div>
+        </div>
+        <div
+          id="chat_room"
+          hx-swap-oob="beforeend"
+          class="py-4 px-2 flex flex-1 flex-col gap-y-4 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch"
+        >
+          <!-- <div class="flex flex-col max-w-xs px-4 py-2.5 rounded-md inline-block bg-[#f0f0f1] text-gray-900">
+            <div class="flex gap-x-2 pt-0.5 pb-1">
+              <span class="align-bottom font-bold leading-3"></span>
+              <span class="align-bottom text-xs font-medium"></span>
+            </div>
+            <span class="leading-5"></span>
+          </div> -->
+          <!-- <div class="flex flex-col max-w-xs px-4 py-2.5 rounded-md inline-block bg-indigo-500 text-white self-end">
+          <div class="flex gap-x-2 pt-0.5 pb-1">
+            <span class="align-bottom font-bold leading-3">John Harris</span>
+            <span class="align-bottom text-xs font-medium">21/10/23 10:11</span>
+          </div>
+          <span class="leading-5"
+            >Can be verified on any platform using docker, Lorem ipsum dolor sit amet, consectetur adipisicing elit. Exercitationem, eum.</span
+          >
+        </div> -->
+        </div>
+        <div class="pt-4">
+          <div class="relative flex">
+            <input
+              type="text"
+              placeholder="Message"
+              name="message"
+              class="w-full focus:outline-none focus:placeholder-gray-400 text-gray-900 placeholder-gray-600 px-4 bg-[#f0f0f1] rounded-md py-3"
+            />
+            <div class="absolute right-0 items-center inset-y-0 flex gap-x-2">
+              <div class="flex">
+                <button
+                  type="button"
+                  class="inline-flex items-center justify-center rounded-full h-10 w-10 transition duration-300 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-6 w-6 text-gray-900">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                    ></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="inline-flex items-center justify-center rounded-full h-10 w-10 transition duration-300 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-6 w-6 text-gray-900">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <button
+                type="submit"
+                class="inline-flex items-center justify-center rounded-tr-md rounded-br-md px-4 py-3 transition duration-300 ease-in-out text-white bg-indigo-500 hover:bg-indigo-600 focus:outline-none"
+              >
+                <span class="font-bold">Send</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-6 w-6 ml-2 transform rotate-90">
+                  <path
+                    d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </main>
+
+    <style>
+      .scrollbar-w-2::-webkit-scrollbar {
+        width: 0.25rem;
+        height: 0.25rem;
+      }
+
+      .scrollbar-track-blue-lighter::-webkit-scrollbar-track {
+        --bg-opacity: 1;
+        background-color: #f7fafc;
+        background-color: rgba(247, 250, 252, var(--bg-opacity));
+      }
+
+      .scrollbar-thumb-blue::-webkit-scrollbar-thumb {
+        --bg-opacity: 1;
+        background-color: #edf2f7;
+        background-color: rgba(237, 242, 247, var(--bg-opacity));
+      }
+
+      .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
+        border-radius: 0.25rem;
+      }
+    </style>
+
+    <script>
+      const el = document.getElementById('chat_room');
+      el.scrollTop = el.scrollHeight;
+    </script>
+  </body>
+</html>
