@@ -13,7 +13,7 @@
     <title>Document</title>
   </head>
   <body>
-    <div hx-ext="ws" ws-connect="ws://localhost:8080/ws">
+    <div hx-ext="ws" ws-connect="ws://localhost:8080/room">
       <!-- <div>
         {{ range .Messages }} {{ block "message-element" .}}
         <p>{{ .Name}} - {{ .Message}} - {{ .Timestamp}}</p>
@@ -26,12 +26,12 @@
         <button type="submit">Send</button>
       </form>
     </div>
-    <script>
+    <!-- <script>
       htmx.logger = function (elt, event, data) {
         if (console) {
           console.log(event, elt, data);
         }
       };
-    </script>
+    </script> -->
   </body>
 </html>
