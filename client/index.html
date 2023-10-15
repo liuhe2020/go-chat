@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/x-icon" href="/client/public/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="public/favicon.ico" />
     <title>Go Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script
@@ -12,6 +12,7 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
+    <script src="index.js" defer></script>
   </head>
   <body>
     <!-- <div hx-ext="ws" ws-connect="ws://localhost:8080/room">
@@ -32,14 +33,8 @@
     <!-- component -->
     <main hx-ext="ws" ws-connect="ws://localhost:8080/room">
       <form class="p-2 flex flex-col gap-y-4 divide-y-2 divide-gray-200 h-screen sm:p-4" id="form" ws-send>
-        <div class="flex justify-end items-center text-gray-900">
-          <!-- <div class="relative flex items-center space-x-4">
-          <div class="flex flex-col leading-tight">
-            <div class="text-2xl mt-1 flex items-center">
-              <span class="text-gray-700 mr-3">Anderson Vanhron</span>
-            </div>
-          </div>
-        </div> -->
+        <div class="flex justify-between items-center text-gray-900">
+          <img src="public/go_chat_logo.png" alt="go chat logo" width="40" height="40" />
           <div class="flex items-center gap-x-4">
             <label for="name" class="whitespace-nowrap">Your Name</label>
             <input name="name" type="text" class="focus:outline-none px-4 placeholder-gray-600 bg-[#f0f0f1] rounded-md py-2" />
