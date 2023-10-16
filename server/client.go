@@ -27,17 +27,6 @@ type Message struct {
 
 func (c *client) read() {
 	defer c.socket.Close()
-
-	// Read the first message to set the username
-	var firstMsg Message
-	err := c.socket.ReadJSON(&firstMsg)
-	if err != nil {
-		return
-	}
-
-	c.username = firstMsg.Name
-	c.room.forward <- firstMsg
-
 	// Continue reading messages
 	for {
 		var msg Message
@@ -45,6 +34,8 @@ func (c *client) read() {
 		if err != nil {
 			return
 		}
+		// set or update the username
+		c.username = msg.Name
 		c.room.forward <- msg
 	}
 }
@@ -72,6 +63,7 @@ func (c *client) write() {
             </div>
             <span class="leading-5">%s</span>
           </div></div>`, cssClasses, msg.Name, timestamp.Format("2/1/06 15:04"), msg.Message)
+
 		htmlBytes := []byte(htmlString)
 		err := c.socket.WriteMessage(websocket.TextMessage, htmlBytes)
 		if err != nil {
