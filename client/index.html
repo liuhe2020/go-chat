@@ -12,32 +12,16 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
-    <script src="index.js" defer></script>
+    <script src="index.js" defer type="module"></script>
   </head>
   <body>
-    <!-- <div hx-ext="ws" ws-connect="ws://localhost:8080/room">
-      <div id="chat_room" hx-swap-oob="beforeend"></div>
-      <form id="form" ws-send>
-        <input name="name" />
-        <input name="message" />
-        <button type="submit">Send</button>
-      </form>
-    </div> -->
-    <!-- <script>
-      htmx.logger = function (elt, event, data) {
-        if (console) {
-          console.log(event, elt, data);
-        }
-      };
-    </script> -->
-    <!-- component -->
     <main hx-ext="ws" ws-connect="ws://localhost:8080/room">
       <form class="p-2 flex flex-col gap-y-4 divide-y-2 divide-gray-200 h-screen sm:p-4" id="form" ws-send>
         <div class="flex justify-between items-center text-gray-900">
           <img src="public/go_chat_logo.png" alt="go chat logo" width="40" height="40" />
           <div class="flex items-center gap-x-4">
             <label for="name" class="whitespace-nowrap">Your Name</label>
-            <input name="name" type="text" class="focus:outline-none px-4 placeholder-gray-600 bg-[#f0f0f1] rounded-md py-2" />
+            <input id="nameInput" name="name" type="text" class="focus:outline-none px-4 placeholder-gray-600 bg-[#f0f0f1] rounded-md py-2" />
           </div>
         </div>
         <div
