@@ -12,7 +12,6 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
-    <script src="index.js" defer type="module"></script>
   </head>
   <body>
     <main hx-ext="ws" ws-connect="ws://localhost:8080/room">
@@ -20,8 +19,10 @@
         <div class="flex justify-between items-center text-gray-900">
           <img src="public/go_chat_logo.png" alt="go chat logo" width="40" height="40" />
           <div class="flex items-center gap-x-4">
-            <label for="name" class="whitespace-nowrap">Your Name</label>
-            <input id="nameInput" name="name" type="text" class="focus:outline-none px-4 placeholder-gray-600 bg-[#f0f0f1] rounded-md py-2" />
+            <label hx-get="http://localhost:8080/name" hx-trigger="load" hx-target="#nameInput" hx-swap="outerHTML" for="name" class="whitespace-nowrap"
+              >Your Name</label
+            >
+            <input id="nameInput" type="text" name="name" class="focus:outline-none px-4 placeholder-gray-600 bg-[#f0f0f1] rounded-md py-2" required />
           </div>
         </div>
         <div
@@ -53,6 +54,7 @@
               placeholder="Message"
               name="message"
               class="w-full focus:outline-none focus:placeholder-gray-400 text-gray-900 placeholder-gray-600 px-4 bg-[#f0f0f1] rounded-md py-3"
+              required
             />
             <div class="absolute right-0 items-center inset-y-0 flex gap-x-2">
               <div class="flex">

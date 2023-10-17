@@ -1,10 +1,3 @@
-import generateStupidName from './name.js';
-
-const name = generateStupidName();
-
-const nameInput = document.querySelector('#nameInput');
-nameInput.value = name;
-
 const messages = document.querySelector('#chat_room').childNodes;
 console.log(messages);
 
