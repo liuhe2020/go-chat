@@ -12,10 +12,11 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
+    <script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
   </head>
   <body>
     <main hx-ext="ws" ws-connect="ws://localhost:8080/room">
-      <form class="p-2 flex flex-col gap-y-4 divide-y-2 divide-gray-200 h-screen sm:p-4" id="form" ws-send>
+      <form class="p-2 flex flex-col gap-y-4 divide-y-2 divide-gray-200 h-screen sm:p-4" id="form" ws-send _="on submit reset() me">
         <div class="flex justify-between items-center text-gray-900">
           <img src="public/go_chat_logo.png" alt="go chat logo" width="40" height="40" />
           <div class="flex items-center gap-x-4">
